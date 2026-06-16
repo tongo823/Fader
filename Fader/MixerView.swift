@@ -151,12 +151,26 @@ struct MixerView: View {
 // MARK: - App row
 
 struct AppRow: View {
+    static let maxVolume: Float = 1.5   // 150% ceiling; 100% sits at the detent
+
     let app: AudioApp
     @EnvironmentObject var engine: AudioEngine
     @State private var hovering = false
 
     private var muted: Bool { engine.isMuted(app) }
     private var level: Float { engine.meters[app.pid] ?? 0 }
+    private var atUnity: Bool { abs(engine.volume(for: app) - 1.0) < 0.001 }
+
+    private var volumeBinding: Binding<Double> {
+        Binding(
+            get: { Double(engine.volume(for: app)) },
+            set: { raw in
+                // Magnetic detent: snap to exactly 100% when close, so it's easy to
+                // land on unity and deliberate to push past it into boost.
+                let snapped = abs(raw - 1.0) < 0.06 ? 1.0 : raw
+                engine.setVolume(Float(snapped), for: app)
+            })
+    }
 
     var body: some View {
         HStack(spacing: 11) {
@@ -170,13 +184,15 @@ struct AppRow: View {
                     Spacer()
                     Text("\(Int(engine.volume(for: app) * 100))%")
                         .font(.system(size: 10.5).monospacedDigit())
-                        .foregroundStyle(muted ? .tertiary : .secondary)
+                        .foregroundStyle(muted ? AnyShapeStyle(.tertiary) : (atUnity ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary)))
                 }
-                Slider(value: Binding(get: { Double(engine.volume(for: app)) },
-                                      set: { engine.setVolume(Float($0), for: app) }),
-                       in: 0...1.5)
-                .controlSize(.small)
-                .disabled(muted)
+                ZStack {
+                    UnityTick(fraction: CGFloat(1.0 / Double(Self.maxVolume)))
+                    Slider(value: volumeBinding, in: 0...Double(Self.maxVolume))
+                        .controlSize(.small)
+                        .disabled(muted)
+                }
+                .frame(height: 20)
                 LevelMeter(level: muted ? 0 : level)
                     .frame(height: 2.5)
             }
@@ -197,6 +213,21 @@ struct AppRow: View {
                 .fill(.primary.opacity(hovering ? 0.06 : 0))
         )
         .onHover { hovering = $0 }
+    }
+}
+
+/// A small tick mark on the slider track marking the 100% (unity) position.
+struct UnityTick: View {
+    let fraction: CGFloat
+    var body: some View {
+        GeometryReader { geo in
+            let inset: CGFloat = 7
+            Capsule()
+                .fill(Color.secondary.opacity(0.45))
+                .frame(width: 2, height: 8)
+                .position(x: inset + (geo.size.width - inset * 2) * fraction, y: geo.size.height / 2)
+        }
+        .allowsHitTesting(false)
     }
 }
 

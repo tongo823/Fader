@@ -324,10 +324,11 @@ final class AudioEngine: ObservableObject {
         }
     }
 
-    /// Transparent below 0.8, then a smooth tanh knee up to ±1.0. Lets >100%
-    /// boost get genuinely louder without harsh digital clipping.
+    /// Transparent below 0.9, then a smooth tanh knee up to ±1.0. Lets >100%
+    /// boost get genuinely louder without harsh digital clipping, while keeping
+    /// unity (100%) fully transparent.
     private func softClip(_ x: Float) -> Float {
-        let t: Float = 0.8
+        let t: Float = 0.9
         if x <= t && x >= -t { return x }
         let s: Float = x < 0 ? -1 : 1
         return s * (t + (1 - t) * tanh((abs(x) - t) / (1 - t)))

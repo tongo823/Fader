@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1
+- Added a magnetic detent at 100% on each app's slider — it snaps to unity so it's easy to land on, with a tick mark and the percentage highlighting at exactly 100%.
+- 100% is now perfectly transparent, and the boost above it has a little more headroom.
+- Drag past the detent to deliberately push an app louder than normal.
+
 ## 1.0
 - First public release.
 - Per-app volume mixer in the menu bar — only apps that are actually playing audio show up.
