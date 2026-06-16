@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" width="1280" height="400" role="img" aria-label="FADER — per-app volume for macOS">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1A1A1A" stroke-width="0.5" stroke-opacity="0.08"/>
+    </pattern>
+    <style>
+      .heading { font-family: 'Helvetica Neue', 'Arial Black', Helvetica, Arial, sans-serif; font-weight: 900; }
+      .mono    { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, 'Courier New', monospace; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="400" fill="#FFFDF5"/>
+  <rect width="1280" height="400" fill="url(#grid)"/>
+
+  <rect x="0" y="0" width="1280" height="36" fill="#1A1A1A"/>
+  <line x1="0" y1="36" x2="1280" y2="36" stroke="#CCFF00" stroke-width="3"/>
+  <text class="mono" x="640" y="24" text-anchor="middle" font-size="12" fill="#CCFF00" letter-spacing="6">CORE AUDIO TAPS · macOS 15+ · SWIFTUI · SPARKLE UPDATES · UNIVERSAL · MENU BAR</text>
+
+  <text class="mono" x="60" y="100" font-size="13" fill="#1A1A1A" letter-spacing="6">PER-APP VOLUME / FOR macOS / A PROPER MENU-BAR MIXER</text>
+
+  <text class="heading" x="60" y="250" font-size="160" fill="#1A1A1A" letter-spacing="-4">FADER<tspan fill="#0055FF">.</tspan></text>
+
+  <text class="mono" x="60" y="310" font-size="14" fill="#1A1A1A" letter-spacing="4">/// PER-APP SLIDERS · LIVE METERS · 150% BOOST · REMEMBERS LEVELS ///</text>
+
+  <rect x="1080" y="80" width="140" height="140" fill="#1A1A1A" stroke="#CCFF00" stroke-width="6"/>
+  <text class="mono" x="1150" y="138" text-anchor="middle" font-size="13" fill="#CCFF00" letter-spacing="2">FREE &amp;</text>
+  <text class="mono" x="1150" y="158" text-anchor="middle" font-size="13" fill="#CCFF00" letter-spacing="2">OPEN</text>
+  <text class="mono" x="1150" y="178" text-anchor="middle" font-size="13" fill="#CCFF00" letter-spacing="2">SOURCE</text>
+
+  <text class="mono" x="60" y="378" font-size="12" fill="#1A1A1A" letter-spacing="4">/// NATIVE macOS · v1.0 · 2026 · HATIM EL HASSAK ///</text>
+</svg>
