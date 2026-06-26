@@ -83,6 +83,7 @@ extension AudioObjectID {
         return s
     }
     func readIsRunningOutput() -> Bool { readBool(kAudioProcessPropertyIsRunningOutput) }
+    func readIsRunningInput() -> Bool { readBool(kAudioProcessPropertyIsRunningInput) }
     func readDeviceUID() throws -> String { try readString(kAudioDevicePropertyDeviceUID) }
     func readTapStreamFormat() throws -> AudioStreamBasicDescription {
         try read(kAudioTapPropertyFormat, defaultValue: AudioStreamBasicDescription())

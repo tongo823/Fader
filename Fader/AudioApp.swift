@@ -52,6 +52,11 @@ enum AudioAppScanner {
 
         for oid in (try? AudioObjectID.readProcessList()) ?? [] where oid.isValid {
             guard oid.readIsRunningOutput() else { continue }
+            // Never tap a process that's also capturing the mic — it's on a call or
+            // recording, and tapping/re-rendering its output breaks the system's voice
+            // processing (echo cancellation) and makes it duck the call hard. Leave such
+            // apps completely untouched. They reappear once the mic is released.
+            guard !oid.readIsRunningInput() else { continue }
             let pid = oid.readPID()
             guard pid != selfPID else { continue }
             guard let owner = owningApp(of: pid, in: byPID), owner.processIdentifier != selfPID else { continue }

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2
+- Fixed: Fader could drop the volume of an app during a voice/video call (e.g. WhatsApp). It now leaves any app that's using the microphone completely untouched, so it can never affect call audio. Such apps reappear in the mixer the moment the call ends.
+
 ## 1.1
 - Added a magnetic detent at 100% on each app's slider — it snaps to unity so it's easy to land on, with a tick mark and the percentage highlighting at exactly 100%.
 - 100% is now perfectly transparent, and the boost above it has a little more headroom.
